@@ -541,37 +541,93 @@ namespace SupplierRegistration
             string phone = Request.Form[empPhone.UniqueID];
             string email = Request.Form[empEmail.UniqueID];
 
+            string[] words = null;
+            string oMail = null;
+            string[] checkMailFormat = null;
+            bool boolMail = false;
+            bool boolCheckMail = true;
+            //CheckFormatEmail#1
+            words = email.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (words[i] != "")
+                {
+                    boolMail = CheckEmailFormat(words[i].Trim());
+                    if (boolMail == false)//Wrong Format
+                    {
+                        boolCheckMail = false;
+
+                    }
+                    else //Correct Format
+                    {
+                        checkMailFormat = words[i].Split(' ');
+                        foreach (string mail in checkMailFormat) //Loop CheckMailFormat
+                        {
+                            if (mail != "")
+                            {
+                                boolMail = CheckEmailFormat(mail); //CheckFormatEmail#2
+                                                                   //Set Email format
+                                if (boolMail == true) //True Format
+                                {
+                                    string fwords = words[i].Trim();
+                                    if (fwords.Contains(";") == false)
+                                    {
+                                        oMail = fwords.Trim();
+                                    }
+                                    else
+                                    {
+                                        oMail = fwords.Trim();
+                                    }
+                                }
+                                else //False Format
+                                {
+                                    boolCheckMail = false;
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
             try
             {
-                conn = new SqlConnection(Properties.Settings.Default.Conn);
-                conn.Open();
-                //กำหนดตัวแปร                
-                var Timestamp = DateTime.Now.ToString("dd MMM yyyy HH:mm");
-                // Add Values
-                sqlcmd = new SqlCommand("spUpdateAuth", conn);
-                sqlcmd.Parameters.AddWithValue("ID", empId);
-                sqlcmd.Parameters.AddWithValue("Phone", phone);
-                sqlcmd.Parameters.AddWithValue("Timestamp", Timestamp);
-                sqlcmd.Parameters.AddWithValue("Email", email);
-                sqlcmd.CommandType = CommandType.StoredProcedure;
-                oDa = new SqlDataAdapter(sqlcmd);
-                oDa.Fill(oDt);
-                if (oDt.Rows.Count > 0)
+                if (boolCheckMail == true)
                 {
-                    if (oDt.Rows[0]["Result"].ToString() == "0")
+
+
+                    conn = new SqlConnection(Properties.Settings.Default.Conn);
+                    conn.Open();
+                    //กำหนดตัวแปร                
+                    var Timestamp = DateTime.Now.ToString("dd MMM yyyy HH:mm");
+                    // Add Values
+                    sqlcmd = new SqlCommand("spUpdateAuth", conn);
+                    sqlcmd.Parameters.AddWithValue("ID", empId);
+                    sqlcmd.Parameters.AddWithValue("Phone", phone);
+                    sqlcmd.Parameters.AddWithValue("Timestamp", Timestamp);
+                    sqlcmd.Parameters.AddWithValue("Email", oMail);
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+                    oDa = new SqlDataAdapter(sqlcmd);
+                    oDa.Fill(oDt);
+                    if (oDt.Rows.Count > 0)
                     {
-                        ScriptManager.RegisterStartupScript(Page, typeof(System.Web.UI.Page), "Popup", "oAlert('error', 'Edit Fail', 'Insert the same value, Please try again.');", true);
+                        if (oDt.Rows[0]["Result"].ToString() == "0")
+                        {
+                            ScriptManager.RegisterStartupScript(Page, typeof(System.Web.UI.Page), "Popup", "oAlert('error', 'Edit Fail', 'Insert the same value, Please try again.');", true);
+                        }
+                        else if (oDt.Rows[0]["Result"].ToString() == "1")
+                        {
+                            ScriptManager.RegisterStartupScript(Page, typeof(System.Web.UI.Page), "Popup", "oConfig('success', 'Edit Success', 'Value has updated.');", true);
+                        }
                     }
-                    else if (oDt.Rows[0]["Result"].ToString() == "1")
+                    else
                     {
-                        ScriptManager.RegisterStartupScript(Page, typeof(System.Web.UI.Page), "Popup", "oConfig('success', 'Edit Success', 'Value has updated.');", true);
+                        ScriptManager.RegisterStartupScript(Page, typeof(System.Web.UI.Page), "Popup", "oAlert('error', 'Edit Fail', 'Can not update value.');", true);
                     }
                 }
                 else
                 {
-                    ScriptManager.RegisterStartupScript(Page, typeof(System.Web.UI.Page), "Popup", "oAlert('error', 'Edit Fail', 'Can not update value.');", true);
+                    ScriptManager.RegisterStartupScript(Page, typeof(System.Web.UI.Page), "Popup", "oAlert('error', 'Edit Fail', 'E-mail Format invalid.');", true);
                 }
-
             }
             catch (Exception ex)
             {
@@ -768,6 +824,18 @@ namespace SupplierRegistration
 
         }
 
+        public static bool CheckEmailFormat(string arrMail)
+        {
+            string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+            if (Regex.IsMatch(arrMail, pattern))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         public void GetRandomPassword(int length)
         {
