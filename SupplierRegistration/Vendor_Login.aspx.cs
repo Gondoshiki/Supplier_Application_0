@@ -1249,6 +1249,7 @@ namespace SupplierRegistration
 
             //string emailTo = "Prompiriya_S@hinothailand.com";
             string link = "https://hinommt.com/SupplierApplication/PS_Detail.aspx?id=" + AppID + "&RecCode=1";
+            String Body = "<img src=\"https://career.hinothailand.com/Career/Images/companylogo.png\" style=\"width:125px; height:125px;\" /> ";
             string EncodeID = null;
             if (AppID != null)
             {
@@ -1298,6 +1299,7 @@ namespace SupplierRegistration
                             BodyMail = BodyMail.Replace("#AppID", EncodeID);
                             BodyMail = BodyMail.Replace("#Phone", Emp_Phone);
                             BodyMail = BodyMail.Replace("#EmployeeName", Emp_Name);
+                            BodyMail = BodyMail.Replace("#image", Body);
                             BodyMail = BodyMail.Replace("#link", link);
                             AlternateView HtmlView;
                             HtmlView = AlternateView.CreateAlternateViewFromString(BodyMail, null, "text/html");
